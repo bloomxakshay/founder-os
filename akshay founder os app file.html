@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Akshay OS</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0A0A0F;--surface:#13131A;--surface2:#1C1C26;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#F0EEE8;--muted:rgba(240,238,232,0.45);--faint:rgba(240,238,232,0.18);--accent:#FF5C00;--accent2:#FF8A40;--purple:#7B6FD4;--teal:#2DD4A0;--pink:#E06B8B;--amber:#F5A623;--red:#E05252;--font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;--r:14px;--r-sm:8px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.5;overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;position:relative}
+
+/* AUTH */
+.auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:32px 24px;text-align:center;gap:20px;background:var(--bg)}
+.auth-logo{font-family:var(--font-head);font-size:64px;font-weight:800;color:var(--accent);letter-spacing:-0.03em;line-height:1}
+.auth-sub-logo{font-family:var(--font-head);font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:-8px}
+.auth-title{font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--text);margin-top:8px}
+.auth-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:260px}
+.auth-google-btn{display:flex;align-items:center;gap:10px;padding:13px 24px;background:white;color:#1f1f1f;border:none;border-radius:var(--r-sm);font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;width:100%;max-width:280px;justify-content:center;transition:opacity .2s}
+.auth-google-btn:hover{opacity:.9}
+.auth-google-btn svg{width:20px;height:20px;flex-shrink:0}
+.auth-note{font-size:11px;color:var(--faint);max-width:260px;line-height:1.6}
+.auth-status{font-size:12px;color:var(--muted);min-height:18px}
+
+/* SYNC BAR */
+.sync-bar{display:flex;align-items:center;gap:6px;padding:6px 16px;font-size:11px;color:var(--muted);flex-shrink:0;border-bottom:0.5px solid var(--border)}
+.sync-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:var(--teal)}
+.sync-dot.saving{background:var(--amber);animation:pulse 1s ease-in-out infinite}
+.sync-dot.error{background:var(--red)}
+.sync-action{margin-left:auto;font-size:10px;cursor:pointer;color:var(--faint);background:none;border:none;font-family:var(--font-body);padding:0}
+.sync-action:hover{color:var(--muted)}
+
+/* NAV */
+.nav{display:flex;justify-content:space-around;padding:10px 0 env(safe-area-inset-bottom,14px);background:var(--surface);border-top:0.5px solid var(--border2);flex-shrink:0;z-index:10}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 10px;color:var(--muted);font-family:var(--font-body);transition:color .2s}
+.nav-btn.active{color:var(--accent)}
+.nav-btn svg{width:22px;height:22px}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+
+/* SCROLL + PAGES */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+.page{display:none;padding-bottom:24px;min-height:100%}
+.page.active{display:block}
+
+/* TYPOGRAPHY */
+.page-header{padding:20px 16px 12px}
+.greeting{font-family:var(--font-head);font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.greeting span{color:var(--accent)}
+.date-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);background:var(--surface2);border:0.5px solid var(--border);padding:5px 10px;border-radius:20px;margin-top:8px;font-weight:500}
+.divider{font-family:var(--font-head);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:2px 16px 8px;margin-top:6px}
+
+/* CARDS */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;margin:0 12px 10px}
+.card-title{font-family:var(--font-head);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.card-title span{color:var(--text);font-size:10px;font-family:var(--font-body);text-transform:none;letter-spacing:0;font-weight:400}
+
+/* TOP 3 */
+.top3-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:.5px solid var(--border)}
+.top3-item:last-child{border-bottom:none;padding-bottom:0}
+.top3-num{font-family:var(--font-head);font-size:18px;font-weight:800;color:var(--accent);min-width:22px;line-height:1;margin-top:2px}
+.top3-input{flex:1;font-size:14px;color:var(--text);outline:none;background:none;border:none;font-family:var(--font-body);caret-color:var(--accent);line-height:1.5}
+.top3-input::placeholder{color:var(--faint)}
+.top3-input.struck{text-decoration:line-through;opacity:.4}
+.top3-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;background:none;margin-top:2px}
+.top3-check.done{background:var(--teal);border-color:var(--teal)}
+
+/* SCHEDULE BLOCKS */
+.time-row{display:flex;gap:8px;align-items:stretch;margin-bottom:5px}
+.time-label{font-size:10px;color:var(--muted);width:36px;flex-shrink:0;padding-top:9px;text-align:right;font-weight:500}
+.time-block{flex:1;border-radius:var(--r-sm);padding:8px 11px;position:relative}
+.tb-title{font-size:12px;font-weight:500}
+.tb-sub{font-size:10px;opacity:.7;margin-top:1px}
+.tb-deep{background:rgba(123,111,212,.15);border-left:2px solid var(--purple)}.tb-deep .tb-title{color:#A99EE8}
+.tb-exec{background:rgba(45,212,160,.12);border-left:2px solid var(--teal)}.tb-exec .tb-title{color:#5FD9B5}
+.tb-people{background:rgba(255,92,0,.12);border-left:2px solid var(--accent)}.tb-people .tb-title{color:var(--accent2)}
+.tb-ops{background:rgba(245,166,35,.12);border-left:2px solid var(--amber)}.tb-ops .tb-title{color:#F7C060}
+.tb-self{background:rgba(224,107,139,.12);border-left:2px solid var(--pink)}.tb-self .tb-title{color:#E88FA6}
+.tb-off{background:var(--surface2);border-left:2px solid var(--border2)}.tb-off .tb-title{color:var(--muted)}
+
+/* HABITS */
+.habit-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border)}
+.habit-row:last-child{border-bottom:none;padding-bottom:0}
+.habit-icon{width:32px;height:32px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;transition:background .2s}
+.habit-name{font-size:13px;font-weight:500}
+.habit-dots{display:flex;gap:3px;margin-top:3px}
+.h-dot{width:5px;height:5px;border-radius:50%;background:var(--border2)}
+.h-dot.on{background:var(--teal)}
+.habit-toggle{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;background:none;flex-shrink:0;transition:all .2s}
+.habit-toggle.on{background:var(--teal);border-color:var(--teal)}
+
+/* FOCUS */
+.focus-hero{margin:0 12px;background:linear-gradient(135deg,rgba(123,111,212,.2),rgba(255,92,0,.15));border:0.5px solid rgba(123,111,212,.3);border-radius:var(--r);padding:24px 20px;text-align:center}
+.focus-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.focus-task-name{font-family:var(--font-head);font-size:17px;font-weight:700;line-height:1.3;margin-bottom:18px;min-height:48px;display:flex;align-items:center;justify-content:center}
+.focus-timer{font-family:var(--font-head);font-size:52px;font-weight:800;letter-spacing:-.03em;color:var(--accent);margin-bottom:18px;line-height:1}
+.focus-progress{height:3px;background:var(--surface2);border-radius:2px;margin-bottom:18px;overflow:hidden}
+.focus-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .5s linear}
+.focus-btns{display:flex;gap:8px;justify-content:center}
+.fbtn{padding:10px 22px;border-radius:var(--r-sm);font-family:var(--font-head);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:none;transition:opacity .2s}
+.fbtn:active{opacity:.75}
+.fbtn-start{background:var(--accent);color:white}
+.fbtn-reset{background:var(--surface2);color:var(--text);border:.5px solid var(--border2)}
+.session-dots{display:flex;gap:6px;justify-content:center;margin-top:12px}
+.s-dot{width:8px;height:8px;border-radius:50%;background:var(--border2)}
+.s-dot.done{background:var(--accent)}
+
+/* TASKS */
+.filter-row{display:flex;gap:6px;padding:0 12px 10px;overflow-x:auto}
+.filter-row::-webkit-scrollbar{display:none}
+.f-chip{background:var(--surface2);border:.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s}
+.f-chip.active{background:var(--accent);border-color:var(--accent);color:white}
+.task-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:.5px solid var(--border)}
+.task-item:last-child{border-bottom:none;padding-bottom:0}
+.task-bar{width:3px;border-radius:2px;flex-shrink:0;margin-top:3px;align-self:stretch}
+.task-body{flex:1;min-width:0}
+.task-title{font-size:13px;line-height:1.4}
+.task-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.task-cb{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;background:none;margin-top:2px}
+.task-cb.done{background:var(--teal);border-color:var(--teal)}
+
+/* ADD TASK */
+.add-input{width:100%;background:var(--surface2);border:.5px solid var(--border2);border-radius:var(--r-sm);padding:10px 12px;font-size:14px;font-family:var(--font-body);color:var(--text);outline:none;caret-color:var(--accent);margin-bottom:8px}
+.add-input::placeholder{color:var(--faint)}
+.add-input:focus{border-color:var(--accent)}
+.add-row{display:flex;gap:8px;margin-bottom:8px}
+.add-sel{flex:1;background:var(--surface2);border:.5px solid var(--border2);border-radius:var(--r-sm);padding:8px 10px;font-size:12px;font-family:var(--font-body);color:var(--text);outline:none}
+.add-btn{width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:var(--r-sm);font-family:var(--font-head);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.add-btn:active{opacity:.8}
+
+/* CAPTURE */
+.notes-ta{width:100%;background:var(--surface2);border:.5px solid var(--border2);border-radius:var(--r-sm);padding:12px;font-size:14px;font-family:var(--font-body);color:var(--text);resize:none;min-height:100px;outline:none;caret-color:var(--accent);line-height:1.6}
+.notes-ta::placeholder{color:var(--faint)}
+.notes-ta:focus{border-color:var(--accent)}
+.process-btn{width:100%;margin-top:8px;padding:12px;background:var(--accent);color:white;border:none;border-radius:var(--r-sm);font-family:var(--font-head);font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.process-btn:disabled{opacity:.4}
+.ai-item{display:flex;align-items:flex-start;gap:8px;background:var(--surface2);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:5px}
+.ai-body{flex:1}.ai-t{font-size:13px;font-weight:500;line-height:1.4}.ai-s{font-size:11px;color:var(--muted);margin-top:2px}
+.ai-pill{font-size:10px;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.pill-sched{background:rgba(45,212,160,.15);color:var(--teal)}
+.pill-skip{background:var(--border);color:var(--muted)}
+.ai-add{background:none;border:.5px solid var(--border2);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--font-body);transition:all .15s}
+.ai-add.added{background:rgba(45,212,160,.15);border-color:var(--teal);color:var(--teal);pointer-events:none}
+
+/* NETWORK */
+.net-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border)}
+.net-item:last-child{border-bottom:none}
+.net-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:12px;font-weight:700;flex-shrink:0}
+.net-name{font-size:13px;font-weight:500}
+.net-ctx{font-size:11px;color:var(--muted);margin-top:1px}
+.net-act{font-size:11px;padding:4px 10px;border-radius:20px;border:.5px solid var(--border2);color:var(--muted);cursor:pointer;background:none;font-family:var(--font-body);white-space:nowrap;flex-shrink:0}
+.net-act.due{border-color:var(--accent);color:var(--accent)}
+
+/* GOALS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 12px;margin-bottom:10px}
+.stat-c{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:12px;text-align:center}
+.stat-n{font-family:var(--font-head);font-size:24px;font-weight:800;line-height:1}
+.stat-l{font-size:10px;color:var(--muted);margin-top:3px}
+.goal-item{margin-bottom:12px}.goal-item:last-child{margin-bottom:0}
+.goal-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.goal-name{font-size:13px;font-weight:500}.goal-val{font-size:11px;color:var(--muted)}
+.goal-bar{height:4px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.goal-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+/* ANIMATIONS */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .25s ease forwards}
+.pulse{animation:pulse 1.5s ease-in-out infinite}
+.loader{display:flex;align-items:center;gap:6px;padding:12px 0;font-size:13px;color:var(--muted)}
+.l-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 1s ease-in-out infinite}
+.l-dot:nth-child(2){animation-delay:.15s}.l-dot:nth-child(3){animation-delay:.3s}
+</style>
+</head>
+<body>
+<div class="app" id="appRoot">
+
+<!-- ═══ AUTH SCREEN ═══ -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-logo">AOS</div>
+  <div class="auth-sub-logo">Akshay OS · Bloomx</div>
+  <div class="auth-title">Your personal founder app</div>
+  <div class="auth-desc">Sign in with Google once. Your data syncs to your Drive automatically — forever.</div>
+  <button class="auth-google-btn" onclick="startGoogleLogin()">
+    <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Sign in with Google
+  </button>
+  <div class="auth-status" id="authStatus"></div>
+  <div class="auth-note">Your data is stored privately in your Google Drive. Only you can access it. No ads, no tracking.</div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="mainApp" style="display:none;flex-direction:column;height:100vh">
+
+  <div class="sync-bar">
+    <div class="sync-dot ok" id="syncDot"></div>
+    <span id="syncText">Synced to Google Drive</span>
+    <button class="sync-action" onclick="forceSave()">Save now</button>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- TODAY -->
+    <div class="page active" id="page-today">
+      <div class="page-header">
+        <div class="greeting" id="greeting">Good morning,<br><span>Akshay.</span></div>
+        <div class="date-badge" id="dateBadge">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Top 3 today <span id="top3prog">0 / 3 done</span></div>
+        <div id="top3List"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Right now</div>
+        <div id="currentBlock"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Today's schedule</div>
+        <div id="todaySchedule"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Daily habits <span id="habitCount">0 / 5</span></div>
+        <div id="habitList"></div>
+      </div>
+    </div>
+
+    <!-- FOCUS -->
+    <div class="page" id="page-focus">
+      <div class="page-header"><div class="greeting">Deep work<br><span>mode.</span></div></div>
+      <div class="focus-hero">
+        <div class="focus-lbl">Now working on</div>
+        <div class="focus-task-name" id="focusTaskName">Pick a task below</div>
+        <div class="focus-timer" id="focusTimer">25:00</div>
+        <div class="focus-progress"><div class="focus-progress-fill" id="focusBar" style="width:0%"></div></div>
+        <div class="focus-btns">
+          <button class="fbtn fbtn-start" id="focusStart">Start</button>
+          <button class="fbtn fbtn-reset" id="focusReset">Reset</button>
+        </div>
+        <div class="session-dots" id="sessionDots"></div>
+      </div>
+      <div class="divider" style="margin-top:18px">Pick a task</div>
+      <div class="card"><div id="focusPickList"></div></div>
+      <div class="divider">Rules</div>
+      <div class="card">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:10px"><div style="width:5px;height:5px;border-radius:50%;background:var(--accent);margin-top:7px;flex-shrink:0"></div><div style="font-size:13px;color:var(--muted)">Phone face-down. Notifications off. One task only.</div></div>
+          <div style="display:flex;gap:10px"><div style="width:5px;height:5px;border-radius:50%;background:var(--purple);margin-top:7px;flex-shrink:0"></div><div style="font-size:13px;color:var(--muted)">25 min on, 5 min off. 4 sessions = 2 hr deep block.</div></div>
+          <div style="display:flex;gap:10px"><div style="width:5px;height:5px;border-radius:50%;background:var(--teal);margin-top:7px;flex-shrink:0"></div><div style="font-size:13px;color:var(--muted)">Thought interrupts? Write it down, come back.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="page" id="page-tasks">
+      <div class="page-header"><div class="greeting">Your<br><span>tasks.</span></div></div>
+      <div class="filter-row" id="filterRow">
+        <div class="f-chip active" data-f="all">All</div>
+        <div class="f-chip" data-f="high">High</div>
+        <div class="f-chip" data-f="medium">Medium</div>
+        <div class="f-chip" data-f="low">Low</div>
+        <div class="f-chip" data-f="done">Done</div>
+      </div>
+      <div class="card"><div id="taskListEl"></div></div>
+      <div class="card">
+        <div class="card-title">Add task</div>
+        <input class="add-input" id="newTaskTitle" placeholder="Task title..."/>
+        <div class="add-row">
+          <select class="add-sel" id="newTaskPri"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+          <select class="add-sel" id="newTaskCat"><option>Organisation</option><option>People & HR</option><option>BD</option><option>Finance</option><option>Brand</option><option>AI & Tech</option><option>Personal</option><option>Operations</option></select>
+        </div>
+        <button class="add-btn" onclick="addTask()">+ Add task</button>
+      </div>
+    </div>
+
+    <!-- CAPTURE -->
+    <div class="page" id="page-capture">
+      <div class="page-header"><div class="greeting">Drop<br><span>anything.</span></div></div>
+      <div class="card">
+        <div class="card-title">Brain dump — AI processes it</div>
+        <textarea class="notes-ta" id="notesDump" placeholder="Voice note, WhatsApp message, random thoughts... Claude will extract tasks and schedule items."></textarea>
+        <button class="process-btn" id="processBtn" onclick="processNotes()">Process with AI</button>
+      </div>
+      <div id="notesOut"></div>
+      <div class="divider" style="margin-top:6px">Networking queue</div>
+      <div class="card"><div id="netList"></div></div>
+    </div>
+
+    <!-- GOALS -->
+    <div class="page" id="page-goals">
+      <div class="page-header"><div class="greeting">Goals &<br><span>growth.</span></div></div>
+      <div class="stats-row">
+        <div class="stat-c"><div class="stat-n" id="s-tasks" style="color:var(--teal)">0</div><div class="stat-l">Done</div></div>
+        <div class="stat-c"><div class="stat-n" id="s-habits" style="color:var(--accent)">0</div><div class="stat-l">Habits</div></div>
+        <div class="stat-c"><div class="stat-n" id="s-focus" style="color:var(--purple)">0</div><div class="stat-l">Focus hrs</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Q1 FY26-27</div>
+        <div id="goalsList"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Personal</div>
+        <div id="personalGoals"></div>
+      </div>
+      <div class="card" style="margin-top:4px">
+        <div class="card-title">Sync status</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.9">
+          Signed in as: <span id="userEmail" style="color:var(--text)">—</span><br>
+          Drive file: <code style="background:var(--surface2);padding:1px 6px;border-radius:4px;font-size:11px">founder_data.json</code><br>
+          Auto-saves every change + every 30s<br>
+          <span style="color:var(--teal)">Data lives in your Google account only.</span><br><br>
+          <button onclick="signOut()" style="background:none;border:.5px solid var(--border2);border-radius:var(--r-sm);padding:6px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--font-body)">Sign out</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- scroll -->
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchPage('today',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span class="nav-label">Today</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('focus',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+      <span class="nav-label">Focus</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('tasks',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <span class="nav-label">Tasks</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('capture',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span class="nav-label">Capture</span>
+    </button>
+    <button class="nav-btn" onclick="switchPage('goals',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      <span class="nav-label">Goals</span>
+    </button>
+  </nav>
+</div><!-- mainApp -->
+</div><!-- appRoot -->
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const CLIENT_ID   = '219370345737-vhsf6fqiiv17rehb78b16r1mlm18u496.apps.googleusercontent.com';
+const DRIVE_FILE  = '15h8LQEA10R-76kF0jLBfMpeOGRmf__QX';
+const SCOPES      = 'https://www.googleapis.com/auth/drive.file';
+const DRIVE_API   = 'https://www.googleapis.com/drive/v3/files';
+const UPLOAD_API  = 'https://www.googleapis.com/upload/drive/v3/files';
+const LS_TOKEN    = 'aos_token';
+const LS_EXPIRY   = 'aos_expiry';
+const LS_DATA     = 'aos_data_v4';
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const DEFAULT = {
+  version:1, lastSaved:'',
+  top3:['','',''], top3done:[false,false,false],
+  habits:[
+    {id:'walk',name:'Morning walk',icon:'🚶',done:false,history:[]},
+    {id:'juice',name:'Raw juice',icon:'🥤',done:false,history:[]},
+    {id:'nophone',name:'No phone till 8am',icon:'📵',done:false,history:[]},
+    {id:'deepwork',name:'Deep work block',icon:'🧠',done:false,history:[]},
+    {id:'review',name:'Daily shutdown',icon:'✅',done:false,history:[]}
+  ],
+  tasks:[
+    {id:1,title:'Hire Performance Marketing Head',priority:'high',cat:'People & HR',done:false},
+    {id:2,title:'Start Bloomx BD lead gen ads',priority:'high',cat:'BD',done:false},
+    {id:3,title:'Create Onboarding SOP',priority:'high',cat:'Organisation',done:false},
+    {id:4,title:'Finalise incentive scheme',priority:'high',cat:'People & HR',done:false},
+    {id:5,title:'Set up Operations Department',priority:'high',cat:'Operations',done:false},
+    {id:6,title:'Naveen — Graphic Creative Lead',priority:'high',cat:'People & HR',done:false},
+    {id:7,title:'Ritesh — Video Creative Lead',priority:'high',cat:'People & HR',done:false},
+    {id:8,title:'3-month expense reserve in bank',priority:'high',cat:'Finance',done:false},
+    {id:9,title:'BD rule: no client contact post-close',priority:'high',cat:'BD',done:false},
+    {id:10,title:'Bloomx reels studio setup',priority:'medium',cat:'Brand',done:false}
+  ],
+  goals:[
+    {id:'rev',name:'Revenue target',current:5,target:20,unit:'Cr',color:'#FF5C00'},
+    {id:'team',name:'Team size',current:90,target:150,unit:'people',color:'#7B6FD4'},
+    {id:'clients',name:'Active clients',current:10,target:25,unit:'clients',color:'#2DD4A0'}
+  ],
+  network:[
+    {id:'kunal',name:'Kunal Apstamb',ctx:'RSS connection',color:'#7B6FD4',ini:'KA',due:true},
+    {id:'sapta',name:'Sapta SSE',ctx:'Professional connection',color:'#2DD4A0',ini:'SS',due:false},
+    {id:'nikhil',name:'Nikhil — Lallantop',ctx:'Invite to office',color:'#FF5C00',ini:'NK',due:true},
+    {id:'harish',name:'Harish Nadda',ctx:'BJP ecosystem follow-up',color:'#F5A623',ini:'HN',due:false},
+    {id:'jito',name:'JITO Network',ctx:'Registration + networking',color:'#E06B8B',ini:'JT',due:true}
+  ],
+  focusTask:null, focusSessions:0, lastHabitDate:'', taskFilter:'all'
+};
+
+let state = null;
+let accessToken = localStorage.getItem(LS_TOKEN) || '';
+let tokenExpiry  = parseInt(localStorage.getItem(LS_EXPIRY)||'0');
+let saveDebounce = null;
+let isSaving     = false;
+let tokenClient  = null;
+let userEmail    = '';
+
+// ═══════════════════════════════════════════
+// GOOGLE IDENTITY (GIS) — no redirect needed
+// ═══════════════════════════════════════════
+window.onload = function() {
+  // Check if we have a valid token
+  if(accessToken && Date.now() < tokenExpiry) {
+    loadFromDrive();
+  }
+  // GIS is loaded async — init when ready
+};
+
+function initGIS() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: handleTokenResponse,
+  });
+}
+
+function startGoogleLogin() {
+  document.getElementById('authStatus').textContent = 'Opening Google sign-in...';
+  if(!tokenClient) initGIS();
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function handleTokenResponse(tokenResponse) {
+  if(tokenResponse.error) {
+    document.getElementById('authStatus').textContent = 'Sign-in failed. Try again.';
+    return;
+  }
+  accessToken = tokenResponse.access_token;
+  // expires_in is in seconds, typically 3600
+  tokenExpiry = Date.now() + (tokenResponse.expires_in * 1000);
+  localStorage.setItem(LS_TOKEN, accessToken);
+  localStorage.setItem(LS_EXPIRY, tokenExpiry.toString());
+
+  // Get user info
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  }).then(r=>r.json()).then(u=>{ userEmail = u.email||''; });
+
+  document.getElementById('authStatus').textContent = 'Connected! Loading your data...';
+  loadFromDrive();
+}
+
+function silentRefresh() {
+  if(!tokenClient) initGIS();
+  tokenClient.requestAccessToken({ prompt: '' }); // silent — no popup if already consented
+}
+
+// Auto-refresh token 5 min before expiry
+setInterval(() => {
+  if(accessToken && Date.now() > tokenExpiry - 5*60*1000) silentRefresh();
+}, 60*1000);
+
+// ═══════════════════════════════════════════
+// DRIVE READ / WRITE
+// ═══════════════════════════════════════════
+async function loadFromDrive() {
+  setSyncStatus('saving','Loading from Drive...');
+  try {
+    const res = await fetch(`${DRIVE_API}/${DRIVE_FILE}?alt=media`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if(res.status === 401) { silentRefresh(); return; }
+    if(!res.ok) throw new Error('load failed');
+    const data = await res.json();
+    state = { ...DEFAULT, ...data };
+    setSyncStatus('ok', 'Synced · ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}));
+    showApp();
+  } catch(e) {
+    console.warn('Drive load failed, using local cache', e);
+    const cached = localStorage.getItem(LS_DATA);
+    state = cached ? { ...DEFAULT, ...JSON.parse(cached) } : { ...DEFAULT };
+    setSyncStatus('error','Offline — using local cache');
+    showApp();
+  }
+}
+
+async function saveToDrive() {
+  if(isSaving || !accessToken) return;
+  isSaving = true;
+  setSyncStatus('saving','Saving...');
+  state.lastSaved = new Date().toISOString();
+  localStorage.setItem(LS_DATA, JSON.stringify(state)); // always save locally too
+  try {
+    const res = await fetch(`${UPLOAD_API}/${DRIVE_FILE}?uploadType=media`, {
+      method: 'PATCH',
+      headers: { Authorization:`Bearer ${accessToken}`, 'Content-Type':'application/json' },
+      body: JSON.stringify(state)
+    });
+    if(res.status === 401) { silentRefresh(); setSyncStatus('saving','Refreshing token...'); }
+    else if(res.ok) setSyncStatus('ok','Saved · '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}));
+    else setSyncStatus('error','Save failed');
+  } catch(e) {
+    setSyncStatus('error','Offline — saved locally');
+  }
+  isSaving = false;
+}
+
+function scheduleSave() {
+  localStorage.setItem(LS_DATA, JSON.stringify(state));
+  clearTimeout(saveDebounce);
+  saveDebounce = setTimeout(saveToDrive, 1500);
+}
+function forceSave() { clearTimeout(saveDebounce); saveToDrive(); }
+
+// Auto-save every 30s
+setInterval(() => { if(state && accessToken) saveToDrive(); }, 30000);
+
+function setSyncStatus(type, text) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  if(!dot) return;
+  dot.className = `sync-dot ${type}`;
+  txt.textContent = text;
+}
+
+// ═══════════════════════════════════════════
+// SHOW / HIDE APP
+// ═══════════════════════════════════════════
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  const ma = document.getElementById('mainApp');
+  ma.style.display = 'flex';
+  if(userEmail) document.getElementById('userEmail').textContent = userEmail;
+  initApp();
+}
+
+function signOut() {
+  google.accounts.oauth2.revoke(accessToken, () => {});
+  localStorage.removeItem(LS_TOKEN);
+  localStorage.removeItem(LS_EXPIRY);
+  accessToken = '';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('authStatus').textContent = 'Signed out.';
+}
+
+// ═══════════════════════════════════════════
+// SCHEDULE DATA
+// ═══════════════════════════════════════════
+const SCHED = {
+  0:[{s:6,e:8,t:'tb-self',n:'Morning ritual',b:'Extended — rest day'},{s:8,e:24,t:'tb-off',n:'Full off',b:'Recharge completely'}],
+  1:[{s:6,e:8,t:'tb-self',n:'Morning ritual',b:'Walk · juice · mindset'},{s:8,e:10,t:'tb-deep',n:'Deep work — strategy',b:'Weekly thinking block'},{s:10,e:12,t:'tb-exec',n:'Co-founder sync',b:'Karan + Anuj'},{s:12,e:13,t:'tb-off',n:'Lunch',b:''},{s:13,e:15,t:'tb-ops',n:'BD pipeline review',b:'Numbers only'},{s:15,e:17,t:'tb-people',n:'Team leads prep',b:'Dashboard review'},{s:17,e:18,t:'tb-off',n:'Shutdown',b:'Write tomorrow top 3'}],
+  2:[{s:6,e:8,t:'tb-self',n:'Morning ritual',b:'Walk · juice · mindset'},{s:8,e:10,t:'tb-deep',n:'Deep work — BD strategy',b:'Pitches + proposals'},{s:10,e:13,t:'tb-exec',n:'Client calls + BD',b:'Strategic clients only'},{s:13,e:14,t:'tb-off',n:'Lunch',b:''},{s:14,e:16,t:'tb-exec',n:'BD team review',b:'Karan Sharma + Aditya'},{s:16,e:17,t:'tb-people',n:'Client check-ins',b:'Relationship calls'},{s:17,e:18,t:'tb-off',n:'Shutdown',b:''}],
+  3:[{s:6,e:8,t:'tb-self',n:'Morning ritual',b:'Walk · juice · mindset'},{s:8,e:10,t:'tb-deep',n:'Deep work — org building',b:'SOPs + systems'},{s:10,e:13,t:'tb-people',n:'1:1 people meetings',b:'Team leads + reports'},{s:13,e:14,t:'tb-off',n:'Lunch',b:''},{s:14,e:16,t:'tb-ops',n:'Operations review',b:'Cross-team check'},{s:16,e:17,t:'tb-people',n:'Mumbai trip prep',b:'Book meetings week 3'},{s:17,e:18,t:'tb-off',n:'Shutdown',b:''}],
+  4:[{s:6,e:8,t:'tb-self',n:'Morning ritual',b:'Walk · juice · mindset'},{s:8,e:10,t:'tb-deep',n:'Deep work — growth + AI',b:'Revenue + AI rollout'},{s:10,e:13,t:'tb-exec',n:'Execution block',b:'Approvals + decisions'},{s:13,e:14,t:'tb-off',n:'Lunch',b:''},{s:14,e:16,t:'tb-exec',n:'Key client check-ins',b:'Personal relationships'},{s:16,e:17,t:'tb-ops',n:'Friday review prep',b:'Wins · misses · one move'},{s:17,e:18,t:'tb-off',n:'Shutdown',b:''}],
+  5:[{s:6,e:8,t:'tb-self',n:'Morning ritual',b:'Walk · juice · mindset'},{s:8,e:10,t:'tb-deep',n:'Weekly review — solo',b:'Most important 90 min'},{s:10,e:12,t:'tb-people',n:'Team leads meeting',b:'Decisions + alignment'},{s:12,e:13,t:'tb-off',n:'Lunch',b:''},{s:13,e:15,t:'tb-people',n:'Walk the floor',b:'No agenda — presence'},{s:15,e:16,t:'tb-ops',n:'Next week prep',b:'Calendar + priorities'},{s:16,e:18,t:'tb-off',n:'Early shutdown',b:'Week done'}],
+  6:[{s:6,e:8,t:'tb-self',n:'Morning ritual — longer',b:'Extended movement'},{s:8,e:11,t:'tb-deep',n:'Learning + personal build',b:'Courses · content · brand'},{s:11,e:13,t:'tb-exec',n:'Optional strategic work',b:'Only if energy is there'},{s:13,e:15,t:'tb-off',n:'Personal time',b:''},{s:15,e:17,t:'tb-people',n:'Networking block',b:'JITO · Kunal · ecosystem'},{s:17,e:24,t:'tb-off',n:'Family + off',b:'Fully off'}]
+};
+
+const NOW   = new Date();
+const DAYS  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const pad   = n => String(n).padStart(2,'0');
+const hr12  = h => h > 12 ? `${h-12}pm` : h === 12 ? '12pm' : `${h}am`;
+
+// ═══════════════════════════════════════════
+// INIT APP
+// ═══════════════════════════════════════════
+function initApp() {
+  const h = NOW.getHours(), dow = NOW.getDay();
+  const greet = h<12?'Good morning,':h<17?'Good afternoon,':'Good evening,';
+  document.getElementById('greeting').innerHTML = `${greet}<br><span>Akshay.</span>`;
+  document.getElementById('dateBadge').textContent = `${DAYS[dow]}, ${NOW.getDate()} ${MONTHS[NOW.getMonth()]}`;
+
+  // Reset habits if new day
+  const todayStr = NOW.toISOString().slice(0,10);
+  if(state.lastHabitDate !== todayStr) {
+    state.habits.forEach(h => { if(!h.history) h.history=[]; h.history.push(h.done); if(h.history.length>14)h.history.shift(); h.done=false; });
+    state.lastHabitDate = todayStr;
+    scheduleSave();
+  }
+
+  renderTop3(); renderCurrentBlock(); renderSchedule(); renderHabits();
+  renderTasks(); renderCapture(); renderGoals();
+}
+
+// ═══════════════════════════════════════════
+// TOP 3
+// ═══════════════════════════════════════════
+function renderTop3() {
+  const el = document.getElementById('top3List');
+  el.innerHTML = [0,1,2].map(i => `
+    <div class="top3-item">
+      <div class="top3-num">${i+1}</div>
+      <input class="top3-input ${state.top3done[i]?'struck':''}" data-i="${i}"
+        placeholder="${['Most important thing today...','Second priority...','Third priority...'][i]}"
+        value="${(state.top3[i]||'').replace(/"/g,'&quot;')}"/>
+      <div class="top3-check ${state.top3done[i]?'done':''}" data-i="${i}">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>`).join('');
+
+  el.querySelectorAll('.top3-input').forEach(inp => {
+    inp.addEventListener('input', e => { state.top3[+e.target.dataset.i]=e.target.value; scheduleSave(); });
+  });
+  el.querySelectorAll('.top3-check').forEach(ch => {
+    ch.addEventListener('click', () => {
+      const i=+ch.dataset.i; state.top3done[i]=!state.top3done[i]; scheduleSave(); renderTop3();
+    });
+  });
+  document.getElementById('top3prog').textContent = `${state.top3done.filter(Boolean).length} / 3 done`;
+}
+
+// ═══════════════════════════════════════════
+// SCHEDULE
+// ═══════════════════════════════════════════
+function renderCurrentBlock() {
+  const h=NOW.getHours(), dow=NOW.getDay();
+  const cb=(SCHED[dow]||[]).find(b=>h>=b.s&&h<b.e);
+  document.getElementById('currentBlock').innerHTML = cb
+    ? `<div class="time-block ${cb.t}" style="margin:0"><div class="tb-title">${cb.n}</div>${cb.b?`<div class="tb-sub">${cb.b}</div>`:''}</div>`
+    : `<div style="font-size:13px;color:var(--muted)">No block scheduled now.</div>`;
+}
+
+function renderSchedule() {
+  const h=NOW.getHours(), dow=NOW.getDay();
+  document.getElementById('todaySchedule').innerHTML = (SCHED[dow]||[]).filter(b=>b.e>7).map(b => {
+    const past=b.e<=h, cur=h>=b.s&&h<b.e;
+    return `<div class="time-row" style="opacity:${past?.4:1}">
+      <div class="time-label">${hr12(b.s)}</div>
+      <div class="time-block ${b.t}">
+        <div class="tb-title">${b.n}</div>${b.b?`<div class="tb-sub">${b.b}</div>`:''}
+        ${cur?'<div style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--accent)" class="pulse"></div>':''}
+      </div></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// HABITS
+// ═══════════════════════════════════════════
+function renderHabits() {
+  document.getElementById('habitList').innerHTML = state.habits.map((h,i) => `
+    <div class="habit-row">
+      <div class="habit-icon" style="background:${h.done?'rgba(45,212,160,.15)':'var(--surface2)'}">${h.icon}</div>
+      <div style="flex:1">
+        <div class="habit-name">${h.name}</div>
+        <div class="habit-dots">${[...Array(7)].map((_,d)=>`<div class="h-dot ${(h.history||[]).slice(-7)[d]?'on':''}"></div>`).join('')}</div>
+      </div>
+      <button class="habit-toggle ${h.done?'on':''}" onclick="toggleHabit(${i})">
+        ${h.done?`<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`:''}
+      </button>
+    </div>`).join('');
+  document.getElementById('habitCount').textContent = `${state.habits.filter(h=>h.done).length} / 5`;
+}
+function toggleHabit(i) {
+  state.habits[i].done = !state.habits[i].done;
+  scheduleSave(); renderHabits(); updateStats();
+}
+
+// ═══════════════════════════════════════════
+// FOCUS TIMER
+// ═══════════════════════════════════════════
+let timerSecs=25*60, timerOn=false, timerIv=null, sessionCount=0;
+const TOTAL=25*60;
+
+function renderFocus() {
+  const tasks = state.tasks.filter(t=>!t.done).slice(0,6);
+  document.getElementById('focusPickList').innerHTML = tasks.map(t => `
+    <div class="task-item" style="cursor:pointer" onclick="pickFocusTask('${t.title.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
+      <div class="task-bar" style="background:${t.priority==='high'?'var(--red)':t.priority==='medium'?'var(--amber)':'var(--faint)'}"></div>
+      <div class="task-body"><div class="task-title">${t.title}</div><div class="task-meta">${t.cat} · ${t.priority}</div></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>`).join('') || '<div style="font-size:13px;color:var(--muted)">No tasks. Add some in Tasks.</div>';
+  if(state.focusTask) document.getElementById('focusTaskName').textContent = state.focusTask;
+  renderSessionDots();
+}
+function pickFocusTask(t) { state.focusTask=t; document.getElementById('focusTaskName').textContent=t; scheduleSave(); }
+function renderSessionDots() {
+  const sc = state.focusSessions % 4;
+  document.getElementById('sessionDots').innerHTML = [0,1,2,3].map(i=>`<div class="s-dot ${i<sc?'done':''}"></div>`).join('');
+}
+function updateFocusTimer() {
+  document.getElementById('focusTimer').textContent = `${pad(Math.floor(timerSecs/60))}:${pad(timerSecs%60)}`;
+  document.getElementById('focusBar').style.width = `${((TOTAL-timerSecs)/TOTAL)*100}%`;
+}
+
+document.getElementById('focusStart').addEventListener('click', function() {
+  if(timerOn) { clearInterval(timerIv); timerOn=false; this.textContent='Resume'; }
+  else {
+    timerOn=true; this.textContent='Pause';
+    timerIv = setInterval(() => {
+      timerSecs--;
+      updateFocusTimer();
+      if(timerSecs<=0) {
+        clearInterval(timerIv); timerOn=false; timerSecs=TOTAL;
+        document.getElementById('focusStart').textContent='Start';
+        updateFocusTimer();
+        state.focusSessions++; scheduleSave(); renderSessionDots(); updateStats();
+        if('vibrate' in navigator) navigator.vibrate([200,100,200]);
+        alert('✅ Session done! Take a 5-min break.');
+      }
+    }, 1000);
+  }
+});
+document.getElementById('focusReset').addEventListener('click', () => {
+  clearInterval(timerIv); timerOn=false; timerSecs=TOTAL;
+  document.getElementById('focusStart').textContent='Start';
+  updateFocusTimer();
+});
+
+// ═══════════════════════════════════════════
+// TASKS
+// ═══════════════════════════════════════════
+function renderTasks() {
+  const f = state.taskFilter;
+  let list = state.tasks;
+  if(f==='high')   list = list.filter(t=>t.priority==='high'&&!t.done);
+  else if(f==='medium') list = list.filter(t=>t.priority==='medium'&&!t.done);
+  else if(f==='low')    list = list.filter(t=>t.priority==='low'&&!t.done);
+  else if(f==='done')   list = list.filter(t=>t.done);
+  else list = list.filter(t=>!t.done);
+
+  document.getElementById('taskListEl').innerHTML = list.map(t => `
+    <div class="task-item">
+      <div class="task-bar" style="background:${t.priority==='high'?'var(--red)':t.priority==='medium'?'var(--amber)':'var(--faint)'}"></div>
+      <div class="task-body">
+        <div class="task-title" style="${t.done?'text-decoration:line-through;opacity:.4':''}">${t.title}</div>
+        <div class="task-meta">${t.cat} · ${t.priority}</div>
+      </div>
+      <button class="task-cb ${t.done?'done':''}" onclick="toggleTask(${t.id})">
+        ${t.done?`<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`:''}
+      </button>
+    </div>`).join('') || '<div style="font-size:13px;color:var(--muted);padding:8px 0">No tasks here.</div>';
+
+  document.querySelectorAll('.f-chip').forEach(c=>c.classList.toggle('active', c.dataset.f===f));
+  updateStats();
+}
+function toggleTask(id) {
+  const t = state.tasks.find(x=>x.id===id); if(t){t.done=!t.done; scheduleSave(); renderTasks();}
+}
+function addTask() {
+  const title = document.getElementById('newTaskTitle').value.trim(); if(!title) return;
+  state.tasks.unshift({id:Date.now(),title,priority:document.getElementById('newTaskPri').value,cat:document.getElementById('newTaskCat').value,done:false});
+  document.getElementById('newTaskTitle').value='';
+  scheduleSave(); renderTasks();
+}
+document.getElementById('filterRow').addEventListener('click', e => {
+  const c = e.target.closest('.f-chip'); if(!c) return;
+  state.taskFilter=c.dataset.f; scheduleSave(); renderTasks();
+});
+
+// ═══════════════════════════════════════════
+// CAPTURE + AI
+// ═══════════════════════════════════════════
+function renderCapture() {
+  document.getElementById('netList').innerHTML = state.network.map(n => `
+    <div class="net-item">
+      <div class="net-av" style="background:${n.color}22;color:${n.color}">${n.ini}</div>
+      <div style="flex:1"><div class="net-name">${n.name}</div><div class="net-ctx">${n.ctx}</div></div>
+      <button class="net-act ${n.due?'due':''}" onclick="markNetDone('${n.id}')">${n.due?'Call now':'Queued'}</button>
+    </div>`).join('');
+}
+function markNetDone(id) {
+  const n=state.network.find(x=>x.id===id); if(n){n.due=false; scheduleSave(); renderCapture();}
+}
+async function processNotes() {
+  const notes = document.getElementById('notesDump').value.trim(); if(!notes) return;
+  const btn = document.getElementById('processBtn'); btn.disabled=true; btn.textContent='Processing...';
+  const out = document.getElementById('notesOut');
+  out.innerHTML=`<div style="padding:0 12px"><div class="loader"><div class="l-dot"></div><div class="l-dot"></div><div class="l-dot"></div><span style="margin-left:4px">Claude reading your notes...</span></div></div>`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:1000,
+      system:`You are Akshay's OS for BloomX, 90-person agency, ₹20Cr target. Analyse notes. Return ONLY valid JSON: {"schedule":[{"title":"...","when":"...","why":"..."}],"tasks":[{"title":"...","priority":"high|medium|low","cat":"..."}],"ignore":[{"title":"...","reason":"..."}]} Max 4 per array. Be concise and specific.`,
+      messages:[{role:'user',content:`Notes:\n\n${notes}`}]
+    })});
+    const data = await res.json();
+    const parsed = JSON.parse(data.content.filter(b=>b.type==='text').map(b=>b.text).join('').replace(/```json|```/g,'').trim());
+    let html = '<div class="fade-up">';
+    if(parsed.schedule?.length){html+=`<div class="divider">Schedule these</div><div class="card">`;html+=parsed.schedule.map(s=>`<div class="ai-item"><div class="ai-body"><div class="ai-t">${s.title}</div><div class="ai-s">${s.when} · ${s.why}</div></div><span class="ai-pill pill-sched">Calendar</span></div>`).join('');html+='</div>';}
+    if(parsed.tasks?.length){html+=`<div class="divider">Add to tasks</div><div class="card">`;html+=parsed.tasks.map(t=>`<div class="ai-item"><div class="ai-body"><div class="ai-t">${t.title}</div><div class="ai-s">${t.cat} · ${t.priority}</div></div><button class="ai-add" onclick="addFromCapture('${t.title.replace(/'/g,"\\'").replace(/"/g,'&quot;')}','${t.priority}','${t.cat}',this)">+ Add</button></div>`).join('');html+='</div>';}
+    if(parsed.ignore?.length){html+=`<div class="divider">Skip for now</div><div class="card">`;html+=parsed.ignore.map(i=>`<div class="ai-item"><div class="ai-body"><div class="ai-t" style="opacity:.5">${i.title}</div><div class="ai-s">${i.reason}</div></div><span class="ai-pill pill-skip">Skip</span></div>`).join('');html+='</div>';}
+    html+='</div>'; out.innerHTML=html;
+  } catch(e) { out.innerHTML=`<div style="padding:0 12px;font-size:13px;color:var(--red)">Could not process. Try again.</div>`; }
+  btn.disabled=false; btn.textContent='Process with AI';
+}
+function addFromCapture(title,priority,cat,btn) {
+  state.tasks.unshift({id:Date.now(),title,priority,cat,done:false});
+  scheduleSave(); btn.textContent='✓ Added'; btn.classList.add('added');
+}
+
+// ═══════════════════════════════════════════
+// GOALS
+// ═══════════════════════════════════════════
+function renderGoals() {
+  document.getElementById('goalsList').innerHTML = state.goals.map(g=>{
+    const pct=Math.min(100,Math.round(g.current/g.target*100));
+    return `<div class="goal-item"><div class="goal-row"><div class="goal-name">${g.name}</div><div class="goal-val">${g.current} / ${g.target} ${g.unit}</div></div><div class="goal-bar"><div class="goal-fill" style="width:${pct}%;background:${g.color}"></div></div></div>`;
+  }).join('');
+  document.getElementById('personalGoals').innerHTML = [
+    {name:'Health — below 100kg',pct:30,color:'var(--pink)'},
+    {name:'Learn driving',pct:0,color:'var(--amber)'},
+    {name:'English + public speaking',pct:10,color:'var(--purple)'},
+    {name:'Personal brand (LinkedIn/IG)',pct:5,color:'var(--teal)'},
+  ].map(g=>`<div class="goal-item"><div class="goal-row"><div class="goal-name">${g.name}</div><div class="goal-val">${g.pct}%</div></div><div class="goal-bar"><div class="goal-fill" style="width:${g.pct}%;background:${g.color}"></div></div></div>`).join('');
+  updateStats();
+}
+function updateStats() {
+  document.getElementById('s-tasks').textContent  = state.tasks.filter(t=>t.done).length;
+  document.getElementById('s-habits').textContent = state.habits.filter(h=>h.done).length;
+  document.getElementById('s-focus').textContent  = (Math.round(state.focusSessions*0.4*10)/10).toFixed(1);
+}
+
+// ═══════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════
+function switchPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('scroll').scrollTop=0;
+  if(name==='focus')  renderFocus();
+  if(name==='capture') renderCapture();
+  if(name==='goals')  renderGoals();
+  if(name==='tasks')  renderTasks();
+}
+
+// Init GIS when script loads
+window.addEventListener('load', () => { if(window.google) initGIS(); });
+document.querySelector('script[src*="gsi/client"]').addEventListener('load', initGIS);
+</script>
+</body>
+</html>
